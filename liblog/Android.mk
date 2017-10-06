@@ -44,18 +44,33 @@ liblog_host_sources := $(liblog_sources) fake_log_device.c
 # ========================================================
 LOCAL_MODULE := liblog
 LOCAL_SRC_FILES := $(liblog_host_sources)
-LOCAL_LDLIBS := -lpthread
 LOCAL_CFLAGS := -DFAKE_LOG_DEVICE=1
+LOCAL_LDLIBS += -ldl -lrt -lpthread
 include $(BUILD_HOST_STATIC_LIBRARY)
 
-# Shared and static library for target
-# ========================================================
-include $(CLEAR_VARS)
-LOCAL_MODULE := liblog
-LOCAL_SRC_FILES := $(liblog_sources)
-include $(BUILD_STATIC_LIBRARY)
+ifeq ($(TARGET_SIMULATOR),true)
+  # Shared library for simulator
+  # ========================================================
+  include $(CLEAR_VARS)
+  LOCAL_MODULE := liblog
+  LOCAL_SRC_FILES := $(liblog_host_sources)
+  LOCAL_CFLAGS := -DFAKE_LOG_DEVICE=1 -DPOSIX
+  LOCAL_LDLIBS += -ldl -lrt -lpthread
+  LOCAL_PRELINK_MODULE := false
+  LOCAL_MODULE_TAGS := eng
+  include $(BUILD_SHARED_LIBRARY)
+else # !sim
+  # Shared and static library for target
+  # ========================================================
+  include $(CLEAR_VARS)
+  LOCAL_MODULE := liblog
+  LOCAL_WHOLE_STATIC_LIBRARIES := liblog
+  include $(BUILD_SHARED_LIBRARY)
+endif # !sim
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := liblog
-LOCAL_WHOLE_STATIC_LIBRARIES := liblog
-include $(BUILD_SHARED_LIBRARY)
+LOCAL_SRC_FILES := $(liblog_host_sources)
+  LOCAL_CFLAGS := -DFAKE_LOG_DEVICE=1 -DPOSIX
+LOCAL_LDLIBS += -ldl -lrt -lpthread
+include $(BUILD_STATIC_LIBRARY)

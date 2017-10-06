@@ -26,6 +26,9 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <cutils/gettid_wrapper.h>
 
 #ifdef HAVE_PTHREADS
 #include <pthread.h>
@@ -281,11 +284,11 @@ static void configureInitialState(const char* pathName, LogState* logState)
         else if (strcmp(fstr, "tag") == 0)
             format = FORMAT_PROCESS;
         else if (strcmp(fstr, "thread") == 0)
-            format = FORMAT_PROCESS;
+            format = FORMAT_THREAD;
         else if (strcmp(fstr, "raw") == 0)
             format = FORMAT_PROCESS;
         else if (strcmp(fstr, "time") == 0)
-            format = FORMAT_PROCESS;
+            format = FORMAT_TIME;
         else if (strcmp(fstr, "long") == 0)
             format = FORMAT_PROCESS;
         else
@@ -338,6 +341,7 @@ static ssize_t fake_writev(int fd, const struct iovec *iov, int iovcnt) {
 #endif
 
 
+
 /*
  * Write a filtered log message to stderr.
  *
@@ -360,7 +364,9 @@ static void showLog(LogState *state,
 
     priChar = getPriorityString(logPrio)[0];
     when = time(NULL);
-    pid = tid = getpid();       // find gettid()?
+
+    pid = getpid();
+    tid = gettid();
 
     /*
      * Get the current date/time in pretty form
@@ -398,18 +404,25 @@ static void showLog(LogState *state,
         break;
     case FORMAT_THREAD:
         prefixLen = snprintf(prefixBuf, sizeof(prefixBuf),
-            "%c(%5d:%p) ", priChar, pid, (void*)tid);
+                             "%c(%5d:%5d) ", priChar, pid, tid);
         strcpy(suffixBuf, "\n"); suffixLen = 1;
         break;
     case FORMAT_RAW:
         prefixBuf[0] = 0; prefixLen = 0;
         strcpy(suffixBuf, "\n"); suffixLen = 1;
         break;
-    case FORMAT_TIME:
+    case FORMAT_TIME: {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        const uint32_t sec = tv.tv_sec %= 10000;
+        const uint32_t ms = tv.tv_usec/1000;
+        const uint32_t us = tv.tv_usec%1000;
         prefixLen = snprintf(prefixBuf, sizeof(prefixBuf),
-            "%s %-8s\n\t", timeBuf, tag);
-        strcpy(suffixBuf, "\n"); suffixLen = 1;
+                             "[%d.%03d.%03d] %c(%5d) ", sec, ms, us, priChar, pid);
+        strcpy(suffixBuf, "\n");
+        suffixLen = 1;
         break;
+    }
     case FORMAT_THREADTIME:
         prefixLen = snprintf(prefixBuf, sizeof(prefixBuf),
             "%s %5d %5d %c %-8s \n\t", timeBuf, pid, tid, priChar, tag);

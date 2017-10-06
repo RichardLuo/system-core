@@ -28,10 +28,12 @@
 #include <cutils/logger.h>
 #include <cutils/logd.h>
 #include <cutils/log.h>
+#include <cutils/base_file_and_line.h>
 
-#define LOG_BUF_SIZE	1024
+#define LOG_BUF_SIZE	4096
 
 #if FAKE_LOG_DEVICE
+extern ssize_t fakeLogWritev(int fd, const struct iovec* vector, int count);
 // This will be defined when building for the host.
 #define log_open(pathname, flags) fakeLogOpen(pathname, flags)
 #define log_writev(filedes, vector, count) fakeLogWritev(filedes, vector, count)
@@ -56,7 +58,7 @@ static int log_fds[(int)LOG_ID_MAX] = { -1, -1, -1, -1 };
  * the simulator rather than a desktop tool and want to use the device.
  */
 static enum {
-    kLogUninitialized, kLogNotAvailable, kLogAvailable
+    kLogUninitialized, kLogNotAvailable, kLogAvailable 
 } g_log_status = kLogUninitialized;
 int __android_log_dev_available(void)
 {
@@ -189,7 +191,7 @@ int __android_log_buf_write(int bufID, int prio, const char *tag, const char *ms
 
 int __android_log_vprint(int prio, const char *tag, const char *fmt, va_list ap)
 {
-    char buf[LOG_BUF_SIZE];
+    char buf[LOG_BUF_SIZE];    
 
     vsnprintf(buf, LOG_BUF_SIZE, fmt, ap);
 
@@ -207,6 +209,22 @@ int __android_log_print(int prio, const char *tag, const char *fmt, ...)
 
     return __android_log_write(prio, tag, buf);
 }
+
+int __android_log_print_ex(int prio, const char *tag,
+                           const char *file, int line, const char *fmt, ...)
+{
+    va_list ap;
+    char buf[LOG_BUF_SIZE];
+
+    const size_t n = snprintf(buf, LOG_BUF_SIZE, "%s:%d# ", BASE_FILE_NAME(file), line);
+    
+    va_start(ap, fmt);
+    vsnprintf(&buf[n], LOG_BUF_SIZE-n, fmt, ap);
+    va_end(ap);
+
+    return __android_log_write(prio, tag, buf);
+}
+
 
 int __android_log_buf_print(int bufID, int prio, const char *tag, const char *fmt, ...)
 {

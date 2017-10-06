@@ -103,6 +103,17 @@ int __android_log_print(int prio, const char *tag,  const char *fmt, ...)
     ;
 
 /*
+ * Send a formatted string to the log, used like printf(fmt,...)
+ */
+int __android_log_print_ex(int prio, const char *tag,
+                           const char *file, int line, const char *fmt, ...)
+#if defined(__GNUC__)
+    __attribute__ ((format(printf, 5, 6)))
+#endif
+    ;
+
+
+/*
  * A variant of __android_log_print() that takes a va_list to list
  * additional parameters.
  */

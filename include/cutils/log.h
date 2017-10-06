@@ -40,10 +40,6 @@
 #include <cutils/uio.h>
 #include <cutils/logd.h>
 
-#include <sys/types.h>
-#include <sys/syscall.h>  
-#define gettid() syscall(__NR_gettid)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -358,7 +354,7 @@ extern "C" {
  */
 #ifndef LOG_PRI
 #define LOG_PRI(priority, tag, ...) \
-    android_printLog(priority, tag, __VA_ARGS__)
+    android_printLog_ex(priority, tag, __VA_ARGS__)
 #endif
 
 /*
@@ -423,6 +419,9 @@ typedef enum {
 
 #define android_printLog(prio, tag, fmt...) \
     __android_log_print(prio, tag, fmt)
+
+#define android_printLog_ex(prio, tag, fmt...)   \
+    __android_log_print_ex(prio, tag, __FILE__, __LINE__, fmt)
 
 #define android_vprintLog(prio, cond, tag, fmt...) \
     __android_log_vprint(prio, tag, fmt)
