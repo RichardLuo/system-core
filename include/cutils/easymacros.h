@@ -11,15 +11,9 @@
 #ifndef _EASYMACROS_H
 #define _EASYMACROS_H
 
-#include <stdint.h>
-
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
-
-#define easyutil_hexdump(buf_addr, buf_size) do {} while(0)
-
-#include <cutils/base_file_and_line.h>
 
 #define LOG_IF_RETURN_CODE(cond,code,info_fmt, ...) \
     do {                                            \
@@ -107,33 +101,6 @@
             LOGE(info_fmt, ## __VA_ARGS__);    \
         }                                       \
     } while(0)
-
-
-#ifdef __cplusplus
-
-class Int32ToCString {
-    char mBuf[5];
-    
-public:
-
-    explicit Int32ToCString(int32_t value) {
-        mBuf[0] = (char) (value >> 24) & 0xFF;
-        mBuf[1] = (char) (value >> 16) & 0xFF;
-        mBuf[2] = (char) (value >> 8) & 0xFF;
-        mBuf[3] = (char) (value & 0xFF);
-        mBuf[4] = 0;
-    }
-
-    const char *c_str() const {
-        return mBuf;
-    }
-
-};
-
-
-#endif
-
-
 
 
 #endif /* _EASYMACROS_H */
