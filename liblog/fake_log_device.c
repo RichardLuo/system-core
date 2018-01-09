@@ -340,7 +340,33 @@ static ssize_t fake_writev(int fd, const struct iovec *iov, int iovcnt) {
 #define writev fake_writev
 #endif
 
+#include <stdio.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
 
+static size_t get_time_string(char *timestr, size_t len) {
+    struct timeval tv;
+    struct tm tmBuf;
+    struct tm* ptm;
+    long milliseconds;
+
+    bzero(timestr, len);
+    /* Obtain the time of day, and convert it to a tm struct. */
+    gettimeofday(&tv, NULL);
+    ptm = localtime_r(&tv.tv_sec, &tmBuf);
+    /* Format the date and time, down to a single second. */
+    const size_t n = strftime(timestr, len, "%Y-%m-%d %H:%M:%S", ptm);
+    if (n > 0) {
+        char strbuf[32];
+        milliseconds = tv.tv_usec / 1000;
+        const size_t k = sprintf(strbuf, ".%03ld ", milliseconds);
+        strcat(timestr, strbuf);
+        return strlen(timestr);
+    } else {
+        return 0;
+    }
+}
 
 /*
  * Write a filtered log message to stderr.
@@ -412,13 +438,12 @@ static void showLog(LogState *state,
         strcpy(suffixBuf, "\n"); suffixLen = 1;
         break;
     case FORMAT_TIME: {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        const uint32_t sec = tv.tv_sec %= 10000;
-        const uint32_t ms = tv.tv_usec/1000;
-        const uint32_t us = tv.tv_usec%1000;
-        prefixLen = snprintf(prefixBuf, sizeof(prefixBuf),
-                             "[%d.%03d.%03d] %c(%5d) ", sec, ms, us, priChar, pid);
+        /* struct timeval tv; */
+        /* gettimeofday(&tv, NULL); */
+        /* const uint32_t sec = tv.tv_sec %= 10000; */
+        /* const uint32_t ms = tv.tv_usec/1000; */
+        /* const uint32_t us = tv.tv_usec%1000; */
+        prefixLen = get_time_string(prefixBuf, sizeof(prefixBuf));
         strcpy(suffixBuf, "\n");
         suffixLen = 1;
         break;
