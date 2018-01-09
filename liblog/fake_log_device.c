@@ -356,7 +356,7 @@ static size_t get_time_string(char *timestr, size_t len) {
     gettimeofday(&tv, NULL);
     ptm = localtime_r(&tv.tv_sec, &tmBuf);
     /* Format the date and time, down to a single second. */
-    const size_t n = strftime(timestr, len, "%Y-%m-%d %H:%M:%S", ptm);
+    const size_t n = strftime(timestr, len, "%m-%d %H:%M:%S", ptm);
     if (n > 0) {
         char strbuf[32];
         milliseconds = tv.tv_usec / 1000;
