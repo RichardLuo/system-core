@@ -129,6 +129,14 @@ extern "C" {
 #define LOGW(...) ((void)LOG(LOG_WARN, LOG_TAG, __VA_ARGS__))
 #endif
 
+#ifndef LOG86
+#ifdef ARCH_X86
+#define LOG86(...) ((void)LOG(LOG_WARN, LOG_TAG, __VA_ARGS__))
+#else
+#define LOG86(...) do {} while(0)
+#endif
+#endif
+
 #ifndef LOGW_IF
 #define LOGW_IF(cond, ...) \
     ( (CONDITION(cond)) \
