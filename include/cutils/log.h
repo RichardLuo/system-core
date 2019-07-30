@@ -44,19 +44,11 @@
 extern "C" {
 #endif
 
-// ---------------------------------------------------------------------
-
-/*
- * Normally we strip LOGV (VERBOSE messages) from release builds.
- * You can modify this (for example with "#define LOG_NDEBUG 0"
- * at the top of your source file) to change that behavior.
- */
-#ifndef LOG_NDEBUG
-#ifdef NDEBUG
-#define LOG_NDEBUG 1
-#else
-#define LOG_NDEBUG 0
-#endif
+#ifdef  DISABLE_LOGX
+#define DISABLE_LOGE
+#define DISABLE_LOGW
+#define DISABLE_LOGD
+#define DISABLE_LOGI
 #endif
 
 /*
@@ -74,8 +66,8 @@ extern "C" {
  * Simplified macro to send a verbose log message using the current LOG_TAG.
  */
 #ifndef LOGV
-#if LOG_NDEBUG
-#define LOGV(...)   ((void)0)
+#ifdef DISABLE_LOGV
+#define LOGV(...)  do {} while (0)
 #else
 #define LOGV(...) ((void)LOG(LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
 #endif
@@ -84,8 +76,8 @@ extern "C" {
 #define CONDITION(cond)     (__builtin_expect((cond)!=0, 0))
 
 #ifndef LOGV_IF
-#if LOG_NDEBUG
-#define LOGV_IF(cond, ...)   ((void)0)
+#ifdef DISABLE_LOGV 
+#define LOGV_IF(cond, ...)   do {} while(0)
 #else
 #define LOGV_IF(cond, ...) \
     ( (CONDITION(cond)) \
@@ -98,35 +90,56 @@ extern "C" {
  * Simplified macro to send a debug log message using the current LOG_TAG.
  */
 #ifndef LOGD
+#ifdef DISABLE_LOGD
+#define LOGD(...)  do {} while (0)
+#else
 #define LOGD(...) ((void)LOG(LOG_DEBUG, LOG_TAG, __VA_ARGS__))
+#endif
 #endif
 
 #ifndef LOGD_IF
+#ifdef DISABLE_LOGD
+#define LOGD_IF(...)  do {} while (0)
+#else
 #define LOGD_IF(cond, ...) \
     ( (CONDITION(cond)) \
     ? ((void)LOG(LOG_DEBUG, LOG_TAG, __VA_ARGS__)) \
     : (void)0 )
+#endif
 #endif
 
 /*
  * Simplified macro to send an info log message using the current LOG_TAG.
  */
 #ifndef LOGI
+#ifdef DISABLE_LOGI
+#define LOGI(...)  do {} while (0)
+#else
 #define LOGI(...) ((void)LOG(LOG_INFO, LOG_TAG, __VA_ARGS__))
 #endif
+#endif
+
 
 #ifndef LOGI_IF
-#define LOGI_IF(cond, ...) \
-    ( (CONDITION(cond)) \
-    ? ((void)LOG(LOG_INFO, LOG_TAG, __VA_ARGS__)) \
-    : (void)0 )
+#ifdef DISABLE_LOGI
+#define LOGI_IF(...)  do {} while (0)
+#else
+#define LOGI_IF(cond, ...)                          \
+    ((CONDITION(cond))                              \
+      ? ((void)LOG(LOG_INFO, LOG_TAG, __VA_ARGS__)) \
+      : (void)0 )
+#endif
 #endif
 
 /*
  * Simplified macro to send a warning log message using the current LOG_TAG.
  */
 #ifndef LOGW
+#ifdef DISABLE_LOGW
+#define LOGW(...) do {} while (0)
+#else
 #define LOGW(...) ((void)LOG(LOG_WARN, LOG_TAG, __VA_ARGS__))
+#endif
 #endif
 
 #ifndef LOG86
@@ -138,25 +151,38 @@ extern "C" {
 #endif
 
 #ifndef LOGW_IF
+#ifdef DISABLE_LOGW
+#define LOGW_IF(...) do {} while (0)
+#else
 #define LOGW_IF(cond, ...) \
     ( (CONDITION(cond)) \
     ? ((void)LOG(LOG_WARN, LOG_TAG, __VA_ARGS__)) \
     : (void)0 )
+#endif
 #endif
 
 /*
  * Simplified macro to send an error log message using the current LOG_TAG.
  */
 #ifndef LOGE
+#ifdef DISABLE_LOGE
+#define LOGE(...) do {} while (0)
+#else
 #define LOGE(...) ((void)LOG(LOG_ERROR, LOG_TAG, __VA_ARGS__))
+#endif
 #endif
 
 #ifndef LOGE_IF
+#ifdef DISABLE_LOGE
+#define LOGE_IF(...) do {} while (0)
+#else
 #define LOGE_IF(cond, ...) \
     ( (CONDITION(cond)) \
     ? ((void)LOG(LOG_ERROR, LOG_TAG, __VA_ARGS__)) \
     : (void)0 )
 #endif
+#endif
+
 
 // ---------------------------------------------------------------------
 
@@ -165,7 +191,7 @@ extern "C" {
  * verbose priority.
  */
 #ifndef IF_LOGV
-#if LOG_NDEBUG
+#ifdef DISABLE_LOGV
 #define IF_LOGV() if (false)
 #else
 #define IF_LOGV() IF_LOG(LOG_VERBOSE, LOG_TAG)
@@ -177,7 +203,11 @@ extern "C" {
  * debug priority.
  */
 #ifndef IF_LOGD
+#ifdef DISABLE_LOGD
+#define IF_LOGD() do {} while (0)
+#else
 #define IF_LOGD() IF_LOG(LOG_DEBUG, LOG_TAG)
+#endif
 #endif
 
 /*
@@ -185,7 +215,11 @@ extern "C" {
  * info priority.
  */
 #ifndef IF_LOGI
+#ifdef DISABLE_LOGI
+#define IF_LOGI() do {} while (0)
+#else
 #define IF_LOGI() IF_LOG(LOG_INFO, LOG_TAG)
+#endif
 #endif
 
 /*
@@ -193,7 +227,11 @@ extern "C" {
  * warn priority.
  */
 #ifndef IF_LOGW
+#ifdef DISABLE_LOGW
+#define IF_LOGW() do {} while (0)
+#else
 #define IF_LOGW() IF_LOG(LOG_WARN, LOG_TAG)
+#endif
 #endif
 
 /*
@@ -201,9 +239,12 @@ extern "C" {
  * error priority.
  */
 #ifndef IF_LOGE
+#ifdef DISABLE_LOGE
+#define IF_LOGE() do {} while (0)
+#else
 #define IF_LOGE() IF_LOG(LOG_ERROR, LOG_TAG)
 #endif
-
+#endif
 
 // ---------------------------------------------------------------------
 
