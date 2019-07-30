@@ -44,12 +44,18 @@
 extern "C" {
 #endif
 
-#ifdef  DISABLE_LOGX
-#define DISABLE_LOGE
+#ifdef DISABLE_LOGE
 #define DISABLE_LOGW
+#endif
+
+#ifdef DISABLE_LOGW
 #define DISABLE_LOGD
+#endif
+
+#ifdef DISABLE_LOGD
 #define DISABLE_LOGI
 #endif
+
 
 /*
  * This is the local tag used for the following simplified
